@@ -1,12 +1,7 @@
 import React from 'react'
 import QrScan from 'react-qr-reader'
 
-const QRScanner = ({ setData, setError }) => {
-  const handleScan = data => {
-    if (data) {
-      setData(data)
-    }
-  }
+const QRScanner = ({ handleScan, setError }) => {
   const handleError = err => {
     setError(err)
   }

@@ -1,36 +1,54 @@
-import React, { useState } from 'react'
-import { Container, Typography, Grid, TextareaAutosize, Toolbar } from '@material-ui/core'
+import React, { useState, useContext, useEffect } from 'react'
+import { Routes, Route, Navigate } from 'react-router-dom'
+import { onAuthStateChanged } from 'firebase/auth'
 
-import Header from './components/Header'
-import QRScanner from './components/QRScanner'
+import { auth } from './firebase'
+import { Context as ClaimsContext } from './contexts/ClaimsContext'
+import { Context as AuthContext } from './contexts/AuthContext'
+import Home from './pages/Home'
+import SignIn from './pages/SignIn'
+import LoadingPage from './components/LoadingPage'
 
 const App = () => {
-  const [data, setData] = useState('No data')
-  const [error, setError] = useState(null)
+  const { getClaims } = useContext(ClaimsContext)
+  const { signOut } = useContext(AuthContext)
+  const [loggedIn, setLoggedIn] = useState(true)
+  const [loggedInLoading, setLoggedInLoading] = useState(true)
+  const [firstLoad, setFirstLoad] = useState(true)
+
+  useEffect(() => {
+    if (firstLoad) {
+      onAuthStateChanged(auth, user => {
+        if (user) {
+          setLoggedIn(true)
+          setLoggedInLoading(false)
+          getClaims()
+        } else {
+          setLoggedIn(false)
+          setLoggedInLoading(false)
+        }
+      })
+      setFirstLoad(false)
+    }
+  }, [getClaims, firstLoad])
 
   return (
     <div className="App">
-      <Header />
-      <Toolbar style={{ height: '50px', minHeight: '50px' }} />
-      <Container style={{ paddingTop: '10px' }} maxWidth="lg">
-        <Typography variant="h5" style={{ padding: '15px 0px 10px 0px' }}>
-          Scan QR Code
-        </Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
-            <QRScanner setData={setData} setError={setError} />
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <TextareaAutosize
-              style={{ fontSize: 18, width: '100%', height: 100 }}
-              rowsMax={4}
-              defaultValue={data}
-              value={data}
-            />
-            {!!error && <p>{error}</p>}
-          </Grid>
-        </Grid>
-      </Container>
+      <Routes>
+        <Route
+          path="/*"
+          element={
+            loggedInLoading ? (
+              <LoadingPage />
+            ) : loggedIn ? (
+              <Home signOut={signOut} />
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+        <Route path="/login" element={<SignIn />} />
+      </Routes>
     </div>
   )
 }
