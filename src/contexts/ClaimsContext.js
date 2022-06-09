@@ -1,6 +1,8 @@
+import { ethers } from 'ethers'
 import createDataContext from './createDataContext'
 import { getTodayString } from '../utils/helpers'
 import { getDatabase, ref, set, get, child } from 'firebase/database'
+import brewDao from '../contracts/ETHBrewDao.json'
 
 const REQUEST_DATES = 'REQUEST_DATES'
 const REQUEST_DATES_SUCCESS = 'REQUEST_DATES_SUCCESS'
@@ -76,25 +78,34 @@ const getClaims = dispatch => async () => {
   }
 }
 
+const _getAddressBalance = async (address) => {
+  const provider = ethers.getDefaultProvider('goerli')
+  const contractAddress = '0x8f688978aA24EcA0639FC104Ef91D92DfBDC8Afe'
+  const contract = new ethers.Contract(contractAddress, brewDao.abi, provider)
+  const balance = await contract.balanceOf(address)
+  return balance.toString()
+}
+
 const validateETHAddress =
   dispatch =>
   async ({ address, data }) => {
     try {
       dispatch({ type: VALIDATE_ADDRESS, payload: null })
       // make sure address is in the right format
-      const refinedAddress = address.match(/0x[a-fA-F0-9]{40}/)
-      if (!refinedAddress)
-        throw new Error(`QR code text does not contain ETH address.`)
+      const refinedAddress = address.match(/0x[a-fA-F0-9]{40}/)[0]
+      if (!refinedAddress) throw new Error(`QR code text does not contain ETH address.`)
 
       // check if address claimed a beer already
       const todayData = data[getTodayString()]
       // todayData undefined => first person to claim beer today
       const hasNotClaimedBeerToday = !todayData || !todayData[refinedAddress]
-      if (!hasNotClaimedBeerToday)
-        throw new Error(`Account has already claimed a beer today.`)
+      if (!hasNotClaimedBeerToday) throw new Error(`Account has already claimed a beer today.`)
 
-      const hasEnoughTokens = true
-      if (!hasEnoughTokens) throw new Error(`Account does not have >100 BREW tokens.`)
+      console.log(refinedAddress)
+      const balance = await _getAddressBalance(refinedAddress)
+      console.log(balance)
+      const hasEnoughTokens = balance >= 100
+      if (!hasEnoughTokens) throw new Error(`Account does not have > 100 BREW tokens.`)
       dispatch({
         type: VALIDATE_ADDRESS_SUCCESS,
         payload: { approved: hasEnoughTokens && hasNotClaimedBeerToday, refinedAddress },
