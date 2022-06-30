@@ -80,7 +80,7 @@ const getClaims = dispatch => async () => {
 
 const _getAddressBalance = async (address) => {
   const provider = ethers.getDefaultProvider('goerli')
-  const contractAddress = '0x8f688978aA24EcA0639FC104Ef91D92DfBDC8Afe'
+  const contractAddress = '0xfF1C84B5D7BB0F53F7e4917810de7aC083F35df6'
   const contract = new ethers.Contract(contractAddress, brewDao.abi, provider)
   const balance = await contract.balanceOf(address)
   return balance.toString()
@@ -101,9 +101,8 @@ const validateETHAddress =
       const hasNotClaimedBeerToday = !todayData || !todayData[refinedAddress]
       if (!hasNotClaimedBeerToday) throw new Error(`Account has already claimed a beer today.`)
 
-      console.log(refinedAddress)
+      // check balance > 100
       const balance = await _getAddressBalance(refinedAddress)
-      console.log(balance)
       const hasEnoughTokens = balance >= 100
       if (!hasEnoughTokens) throw new Error(`Account does not have > 100 BREW tokens.`)
       dispatch({
