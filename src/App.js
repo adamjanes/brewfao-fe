@@ -1,9 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { onAuthStateChanged } from 'firebase/auth'
-import { ethers } from 'ethers'
 
-import brewDao from './contracts/ETHBrewDao.json'
 import { auth } from './firebase'
 import { Context as ClaimsContext } from './contexts/ClaimsContext'
 import { Context as AuthContext } from './contexts/AuthContext'

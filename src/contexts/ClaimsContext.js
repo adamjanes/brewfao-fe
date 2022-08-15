@@ -78,9 +78,12 @@ const getClaims = dispatch => async () => {
   }
 }
 
-const _getAddressBalance = async (address) => {
-  const provider = ethers.getDefaultProvider('goerli')
-  const contractAddress = '0xfF1C84B5D7BB0F53F7e4917810de7aC083F35df6'
+const _getAddressBalance = async address => {
+  console.log(process.env.REACT_APP_ALCHEMY_API_KEY)
+  const provider = ethers.getDefaultProvider('goerli', {
+    alchemy: process.env.REACT_APP_ALCHEMY_API_KEY,
+  })
+  const contractAddress = process.env.REACT_APP_CONTRACT_ADDRESS
   const contract = new ethers.Contract(contractAddress, brewDao.abi, provider)
   const balance = await contract.balanceOf(address)
   return balance.toString()
